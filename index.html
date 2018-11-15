@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>pazzle</title>
+  <link rel="stylesheet" href="reset.css">
+  <style>
+    .pazzle {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      align-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .pazzle-item {
+      display: inline-block;
+      border: 1px solid #fff;
+      box-sizing: border-box;
+      transition: all 1s;
+    }
+
+    .pazzle2 {
+      width: 80%;
+      height: 80%;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      align-content: flex-start;
+      flex-wrap: wrap;
+      background-size: 100% 100%;
+    }
+  </style>
+</head>
+<body>
+<button class="btn">click to messy</button>
+<div class="pazzle"></div>
+<!--<div class="pazzle2"></div>-->
+
+</body>
+<script>
+  getImgInfo("./bg.jpg").then((imgInfo) => {
+    let pazzleContainer = document.querySelector('.pazzle')
+
+    let maxW = parseInt(document.body.offsetWidth * .8)
+    let maxH = parseInt(document.body.offsetHeight * .8)
+
+    let maxRatio = maxW / maxH
+    let imgRatio = imgInfo.width / imgInfo.height
+
+    let bgSize = {
+      width: 0,
+      height: 0
+    }
+    let clipNum = [20, 10]
+
+
+    if (maxRatio > imgRatio) {
+      bgSize.height = maxH
+      bgSize.width = maxH * imgInfo.width / imgInfo.height
+    } else {
+      bgSize.width = maxW
+      bgSize.height = maxW * imgInfo.height / imgInfo.width
+    }
+
+    if (bgSize.width < bgSize.height) {
+      clipNum.reverse()
+    }
+
+    let styles = {
+      width: `${bgSize.width / clipNum[0]}px`,
+      height: `${bgSize.height / clipNum[1]}px`,
+      backgroundImage: `url(${imgInfo.src})`,
+      backgroundSize: `${bgSize.width}px ${bgSize.height}px`
+    }
+    let frag = document.createDocumentFragment()
+
+    for (let i = 0; i < clipNum[0] * clipNum[1]; i++) {
+      styles.backgroundPosition = `-${bgSize.width / clipNum[0] * (i % clipNum[0])}px -${bgSize.height / clipNum[1] * Math.floor(i / clipNum[0])}px`
+      let pazzleItem = setStyle(document.createElement('div'), styles)
+      pazzleItem.classList.add('pazzle-item')
+      frag.appendChild(pazzleItem)
+    }
+
+    pazzleContainer.style.width = `${bgSize.width}px`
+    pazzleContainer.style.height = `${bgSize.height}px`
+    pazzleContainer.style.display = `block`
+    pazzleContainer.appendChild(frag)
+
+    // test(bgSize,imgInfo)
+  })
+
+  let btn = document.querySelector('.btn')
+  btn.addEventListener('click', function () {
+    let pazzleContainer = document.querySelector('.pazzle')
+
+    let center = {
+      left: (document.body.offsetWidth - parseInt(getStyle(pazzleContainer, 'width'))) / 2,
+      top: (document.body.offsetHeight - parseInt(getStyle(pazzleContainer, 'height'))) / 2,
+    }
+    messy(center)
+  })
+
+  function messy(center) {
+    let boomItems = document.querySelectorAll('.pazzle-item')
+    console.log('center', center)
+    boomItems.forEach((dom) => {
+      let transform = `translate(${randomNum(-center.left, center.left)}px,${randomNum(-center.top, center.top)}px) rotate(${randomNum(0, 360)}deg)`
+      dom.style.transform = transform
+    })
+  }
+
+  function test(bgSize, imgInfo) {
+    let pazzle2 = document.querySelector('.pazzle2')
+    let styles = {
+      width: `${bgSize.width}px`,
+      height: `${bgSize.height}px`,
+      backgroundImage: `url(${imgInfo.src})`
+    }
+    setStyle(pazzle2, styles)
+  }
+
+  function setStyle(dom, styles) {
+    for (let key in styles) {
+      dom.style[key] = styles[key]
+    }
+    return dom
+  }
+
+  function getImgInfo(src) {
+    return new Promise((resolve, reject) => {
+      let img = document.createElement('img')
+      img.src = src
+      img.onload = function () {
+        resolve({
+          src: src,
+          width: img.width,
+          height: img.height
+        })
+      }
+    })
+  }
+
+  function randomNum(minNum, maxNum) {
+    switch (arguments.length) {
+      case 1:
+        return parseInt(Math.random() * minNum + 1, 10);
+        break;
+      case 2:
+        return parseInt(Math.random() * (maxNum - minNum + 1) + minNum, 10);
+        break;
+      default:
+        return 0;
+        break;
+    }
+  }
+
+  function getStyle(el, ruleName) {
+    return getComputedStyle(el, null).getPropertyValue(ruleName)
+  }
+</script>
+</html>
