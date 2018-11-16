@@ -7,6 +7,10 @@
   <title>pazzle</title>
   <link rel="stylesheet" href="reset.css">
   <style>
+    body {
+      overflow: hidden;
+    }
+
     .pazzle {
       position: absolute;
       left: 0;
@@ -19,13 +23,17 @@
       align-items: flex-start;
       align-content: flex-start;
       flex-wrap: wrap;
+      background-color: #fff;
     }
 
     .pazzle-item {
+
       display: inline-block;
-      border: 1px solid #fff;
+      padding-right: 1px;
+      padding-bottom: 1px;
       box-sizing: border-box;
       transition: all 1s;
+      background-clip: content-box;
     }
 
     .pazzle2 {
@@ -46,13 +54,15 @@
   </style>
 </head>
 <body>
-<button class="btn">click to messy</button>
+<button class="messy-btn">click to messy</button>
+<button class="return-btn">click to return</button>
 <div class="pazzle"></div>
 <!--<div class="pazzle2"></div>-->
 
 </body>
 <script>
   getImgInfo("./bg.jpg").then((imgInfo) => {
+
     let pazzleContainer = document.querySelector('.pazzle')
 
     let maxW = parseInt(document.body.offsetWidth * .8)
@@ -95,42 +105,52 @@
       frag.appendChild(pazzleItem)
     }
 
+
     pazzleContainer.style.width = `${bgSize.width}px`
     pazzleContainer.style.height = `${bgSize.height}px`
-    pazzleContainer.style.display = `block`
     pazzleContainer.appendChild(frag)
-
-    // test(bgSize,imgInfo)
+    setRandom()
+    initBtnEvent()
   })
 
-  let btn = document.querySelector('.btn')
-  btn.addEventListener('click', function () {
-    let pazzleContainer = document.querySelector('.pazzle')
+  function setRandom() {
+    let items = document.querySelectorAll('.pazzle-item')
 
-    let center = {
-      left: (document.body.offsetWidth - parseInt(getStyle(pazzleContainer, 'width'))) / 2,
-      top: (document.body.offsetHeight - parseInt(getStyle(pazzleContainer, 'height'))) / 2,
-    }
-    messy(center)
-  })
+    let wW = document.body.offsetWidth
+    let wH = document.body.offsetHeight
 
-  function messy(center) {
-    let boomItems = document.querySelectorAll('.pazzle-item')
-    console.log('center', center)
-    boomItems.forEach((dom) => {
-      let transform = `translate(${randomNum(-center.left, center.left)}px,${randomNum(-center.top, center.top)}px) rotate(${randomNum(0, 360)}deg)`
-      dom.style.transform = transform
+    items.forEach((item) => {
+      let rect = item.getBoundingClientRect()
+      item.random = {
+        left: [-Math.floor(rect.left), Math.floor(wW - rect.right)],
+        top: [-Math.floor(rect.top), Math.floor(wH - rect.bottom)]
+      }
     })
   }
 
-  function test(bgSize, imgInfo) {
-    let pazzle2 = document.querySelector('.pazzle2')
-    let styles = {
-      width: `${bgSize.width}px`,
-      height: `${bgSize.height}px`,
-      backgroundImage: `url(${imgInfo.src})`
-    }
-    setStyle(pazzle2, styles)
+  function initBtnEvent() {
+    let messyBtn = document.querySelector('.messy-btn')
+    let returnBtn = document.querySelector('.return-btn')
+
+    messyBtn.addEventListener('click', function () {
+      let boomItems = document.querySelectorAll('.pazzle-item')
+
+      boomItems.forEach((dom) => {
+        let randomData = dom.random
+        let transform = `translate(${randomNum(randomData.left[0], randomData.left[1])}px,${randomNum(randomData.top[0], randomData.top[1])}px) rotate(${randomNum(0, 360)}deg)`
+        dom.style.transform = transform
+      })
+    })
+
+    returnBtn.addEventListener('click', function () {
+      let boomItems = document.querySelectorAll('.pazzle-item')
+
+      boomItems.forEach((dom) => {
+        let transform = `translate(0,0) rotate(0)`
+        dom.style.transform = transform
+      })
+    })
+
   }
 
   function setStyle(dom, styles) {
@@ -154,22 +174,15 @@
     })
   }
 
-  function randomNum(minNum, maxNum) {
+  function randomNum(min, max) {
     switch (arguments.length) {
       case 1:
-        return parseInt(Math.random() * minNum + 1, 10);
-        break;
+        return parseInt(Math.random() * min + 1, 10)
       case 2:
-        return parseInt(Math.random() * (maxNum - minNum + 1) + minNum, 10);
-        break;
+        return parseInt(Math.random() * (max - min + 1) + min, 10)
       default:
-        return 0;
-        break;
+        return 0
     }
-  }
-
-  function getStyle(el, ruleName) {
-    return getComputedStyle(el, null).getPropertyValue(ruleName)
   }
 </script>
 </html>
