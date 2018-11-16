@@ -23,50 +23,44 @@
       align-items: flex-start;
       align-content: flex-start;
       flex-wrap: wrap;
-      background-color: #fff;
+      outline:1px solid #ddd;
+      background: linear-gradient(#ddd 1px, transparent 0),
+      linear-gradient(90deg, #ddd 1px, transparent 0);
+      /*background-size: 15px 15px,15px 15px*/
     }
 
     .pazzle-item {
-
       display: inline-block;
-      padding-right: 1px;
-      padding-bottom: 1px;
+      border-right: 1px solid transparent;
+      border-bottom: 1px solid transparent;
       box-sizing: border-box;
-      transition: all 1s;
+      transform-origin: center center;
       background-clip: content-box;
     }
-
-    .pazzle2 {
-      width: 80%;
-      height: 80%;
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      margin: auto;
-      display: flex;
-      justify-content: flex-start;
-      align-items: flex-start;
-      align-content: flex-start;
-      flex-wrap: wrap;
-      background-size: 100% 100%;
+    .pazzle-item.animate{
+      transition: all 1s;
+    }
+    .pazzle-item:active{
+      outline:3px solid #67C23A;
     }
   </style>
 </head>
 <body>
 <button class="messy-btn">click to messy</button>
-<button class="return-btn">click to return</button>
+<button class="return-btn">click to return</button><br/>
+<img src="./bg.jpg" alt="" style="width:25%;">
 <div class="pazzle"></div>
 <!--<div class="pazzle2"></div>-->
 
 </body>
+<script src="./drag.js"></script>
 <script>
   getImgInfo("./bg.jpg").then((imgInfo) => {
 
     let pazzleContainer = document.querySelector('.pazzle')
 
-    let maxW = parseInt(document.body.offsetWidth * .8)
-    let maxH = parseInt(document.body.offsetHeight * .8)
+    let maxW = parseInt(document.body.offsetWidth * .6)
+    let maxH = parseInt(document.body.offsetHeight * .6)
 
     let maxRatio = maxW / maxH
     let imgRatio = imgInfo.width / imgInfo.height
@@ -75,8 +69,7 @@
       width: 0,
       height: 0
     }
-    let clipNum = [20, 10]
-
+    let clipNum = [4, 4]
 
     if (maxRatio > imgRatio) {
       bgSize.height = maxH
@@ -105,13 +98,19 @@
       frag.appendChild(pazzleItem)
     }
 
-
     pazzleContainer.style.width = `${bgSize.width}px`
     pazzleContainer.style.height = `${bgSize.height}px`
+    pazzleContainer.style.backgroundSize = `${styles.width} ${styles.height},${styles.width} ${styles.height}`
     pazzleContainer.appendChild(frag)
     setRandom()
+    initItemsEvent()
     initBtnEvent()
   })
+
+  function initItemsEvent() {
+    let items = document.querySelectorAll('.pazzle-item')
+    initItemsDragEvent(items)
+  }
 
   function setRandom() {
     let items = document.querySelectorAll('.pazzle-item')
@@ -136,9 +135,15 @@
       let boomItems = document.querySelectorAll('.pazzle-item')
 
       boomItems.forEach((dom) => {
+        dom.classList.add('animate')
         let randomData = dom.random
-        let transform = `translate(${randomNum(randomData.left[0], randomData.left[1])}px,${randomNum(randomData.top[0], randomData.top[1])}px) rotate(${randomNum(0, 360)}deg)`
+        let rotate = [0,45,90,135][randomNum(0, 3)]
+        let transform = `translate(${randomNum(randomData.left[0], randomData.left[1])}px,${randomNum(randomData.top[0], randomData.top[1])}px) rotate(${rotate}deg)`
         dom.style.transform = transform
+
+        setTimeout(() => {
+          dom.classList.remove('animate')
+        },1*1000)
       })
     })
 
