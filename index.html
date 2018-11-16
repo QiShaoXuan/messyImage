@@ -12,6 +12,7 @@
     }
 
     .pazzle {
+      width:0;height:0;
       position: absolute;
       left: 0;
       right: 0;
@@ -23,7 +24,7 @@
       align-items: flex-start;
       align-content: flex-start;
       flex-wrap: wrap;
-      outline:1px solid #ddd;
+      outline: 1px solid #ddd;
       background: linear-gradient(#ddd 1px, transparent 0),
       linear-gradient(90deg, #ddd 1px, transparent 0);
       /*background-size: 15px 15px,15px 15px*/
@@ -37,27 +38,74 @@
       transform-origin: center center;
       background-clip: content-box;
     }
-    .pazzle-item.animate{
+
+    .pazzle-item.animate {
       transition: all 1s;
     }
-    .pazzle-item:active{
-      outline:3px solid #67C23A;
+
+    .pazzle-item:active {
+      outline: 3px solid #67C23A;
     }
   </style>
 </head>
 <body>
+<input type="file" id="fileInput" accept="image/png, image/jpeg, image/gif, image/jpg">
+<select id="step">
+  <option value="0">简单</option>
+  <option value="1">中等</option>
+  <option value="2">困难</option>
+  <option value="3">地狱</option>
+</select>
 <button class="messy-btn">click to messy</button>
-<button class="return-btn">click to return</button><br/>
-<img src="./bg.jpg" alt="" style="width:25%;">
+<button class="return-btn">click to return</button>
+<br/>
+<img src="" id="img" alt="" style="width:25%;">
+
+
 <div class="pazzle"></div>
 <!--<div class="pazzle2"></div>-->
 
 </body>
 <script src="./drag.js"></script>
 <script>
-  getImgInfo("./bg.jpg").then((imgInfo) => {
 
+
+  let fileInput = document.querySelector('#fileInput')
+  let img = document.querySelector('#img')
+  fileInput.onchange = function () {
+    let file = fileInput.files[0];
+    let src = getObjectURL(file)
+
+    img.src = src
+    init(src)
+  }
+
+  function getObjectURL(file) {
+    var url = null ;
+    // 下面函数执行的效果是一样的，只是需要针对不同的浏览器执行不同的 js 函数而已
+    if (window.createObjectURL!=undefined) { // basic
+      url = window.createObjectURL(file) ;
+    } else if (window.URL!=undefined) { // mozilla(firefox)
+      url = window.URL.createObjectURL(file) ;
+    } else if (window.webkitURL!=undefined) { // webkit or chrome
+      url = window.webkitURL.createObjectURL(file) ;
+    }
+    return url ;
+  }
+
+  function init(dir) {
+    getImgInfo(dir).then((imgInfo) => {
+      initItems(imgInfo)
+      setRandom()
+      initItemsEvent()
+      initBtnEvent()
+    })
+  }
+
+  function initItems(imgInfo) {
     let pazzleContainer = document.querySelector('.pazzle')
+    pazzleContainer.innerHTML = ''
+    let step= document.querySelector('#step').value
 
     let maxW = parseInt(document.body.offsetWidth * .6)
     let maxH = parseInt(document.body.offsetHeight * .6)
@@ -69,7 +117,7 @@
       width: 0,
       height: 0
     }
-    let clipNum = [4, 4]
+    let clipNum = [[4, 4],[6, 8],[20, 10],[50,20]][step]
 
     if (maxRatio > imgRatio) {
       bgSize.height = maxH
@@ -102,10 +150,7 @@
     pazzleContainer.style.height = `${bgSize.height}px`
     pazzleContainer.style.backgroundSize = `${styles.width} ${styles.height},${styles.width} ${styles.height}`
     pazzleContainer.appendChild(frag)
-    setRandom()
-    initItemsEvent()
-    initBtnEvent()
-  })
+  }
 
   function initItemsEvent() {
     let items = document.querySelectorAll('.pazzle-item')
@@ -137,13 +182,13 @@
       boomItems.forEach((dom) => {
         dom.classList.add('animate')
         let randomData = dom.random
-        let rotate = [0,45,90,135][randomNum(0, 3)]
+        let rotate = [0, 45, 90, 135][randomNum(0, 3)]
         let transform = `translate(${randomNum(randomData.left[0], randomData.left[1])}px,${randomNum(randomData.top[0], randomData.top[1])}px) rotate(${rotate}deg)`
         dom.style.transform = transform
 
         setTimeout(() => {
           dom.classList.remove('animate')
-        },1*1000)
+        }, 1 * 1000)
       })
     })
 

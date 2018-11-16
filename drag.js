@@ -5,6 +5,7 @@ function initItemsDragEvent(doms) {
   this.dragDom = null
 
   doms.forEach((dom) => {
+
     dom.onmousedown = function (e) {
       that.dragDom = dom
       let positionData = dom.style.transform.match(/\-*\d+/g)
