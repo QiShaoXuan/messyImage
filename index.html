@@ -1,111 +1,93 @@
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>messy</title>
   <link rel="stylesheet" href="reset.css">
-  <style>
-    body {
-      overflow: hidden;
-    }
-
-    .pazzle {
-      width:0;height:0;
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      margin: auto;
-      display: flex;
-      justify-content: flex-start;
-      align-items: flex-start;
-      align-content: flex-start;
-      flex-wrap: wrap;
-      outline: 1px solid #ddd;
-      background: linear-gradient(#ddd 1px, transparent 0),
-      linear-gradient(90deg, #ddd 1px, transparent 0);
-      /*background-size: 15px 15px,15px 15px*/
-    }
-
-    .pazzle-item {
-      display: inline-block;
-      border-right: 1px solid transparent;
-      border-bottom: 1px solid transparent;
-      box-sizing: border-box;
-      transform-origin: center center;
-      background-clip: content-box;
-    }
-
-    .pazzle-item.animate {
-      transition: all 1s;
-    }
-
-    .pazzle-item:active {
-      outline: 3px solid #67C23A;
-    }
-  </style>
+  <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
-<input type="file" id="fileInput" accept="image/png, image/jpeg, image/gif, image/jpg">
-<select id="step">
-  <option value="0">简单</option>
-  <option value="1">中等</option>
-  <option value="2">困难</option>
-  <option value="3">地狱</option>
-</select>
-<button class="messy-btn">click to messy</button>
-<button class="return-btn">click to return</button>
-<br/>
-<img src="" id="img" alt="" style="width:25%;">
+  <input type="file" id="fileInput" value=“./bg.jpg” accept="image/png, image/jpeg, image/gif, image/jpg">
+  <select id="step">
+    <option value="0">简单</option>
+    <option value="1">中等</option>
+    <option value="2">困难</option>
+    <option value="3">地狱</option>
+  </select>
+  <button class="reset-btn">click to reset</button>
+  <button class="return-btn">click to return</button>
+  <br />
+  <img src="" id="img" alt="" style="width:25%;">
 
 
-<div class="pazzle"></div>
-<!--<div class="pazzle2"></div>-->
+  <div class="pazzle"></div>
+  <!--<div class="pazzle2"></div>-->
 
 </body>
 <script src="./drag.js"></script>
 <script>
+  initBtnEvent()
+  initPazzle({
+    rotate: true,
+    rank: 0,
+    src: './bg.jpg',
+  })
 
+  function initBtnEvent() {
+    let resetBtn = document.querySelector('.reset-btn')
+    let returnBtn = document.querySelector('.return-btn')
 
-  let fileInput = document.querySelector('#fileInput')
-  let img = document.querySelector('#img')
-  fileInput.onchange = function () {
-    let file = fileInput.files[0];
-    let src = getObjectURL(file)
+    resetBtn.addEventListener('click', function () {
 
-    img.src = src
-    init(src)
-  }
+      let file = document.querySelector('#fileInput').files[0]
+      let config = {
+        rotate: true,
+        rank: document.querySelector('#step').value,
+        src: file ?  getObjectURL(file):document.querySelector('#img').src,
+      }
+      initPazzle(config)
+    })
 
-  function getObjectURL(file) {
-    var url = null ;
-    // 下面函数执行的效果是一样的，只是需要针对不同的浏览器执行不同的 js 函数而已
-    if (window.createObjectURL!=undefined) { // basic
-      url = window.createObjectURL(file) ;
-    } else if (window.URL!=undefined) { // mozilla(firefox)
-      url = window.URL.createObjectURL(file) ;
-    } else if (window.webkitURL!=undefined) { // webkit or chrome
-      url = window.webkitURL.createObjectURL(file) ;
-    }
-    return url ;
-  }
+    returnBtn.addEventListener('click', function () {
+      let boomItems = document.querySelectorAll('.pazzle-item')
 
-  function init(dir) {
-    getImgInfo(dir).then((imgInfo) => {
-      initItems(imgInfo)
-      setRandom()
-      initItemsEvent()
-      initBtnEvent()
+      boomItems.forEach((dom) => {
+        let transform = `translate(0,0) rotate(0)`
+        dom.style.transform = transform
+      })
     })
   }
 
-  function initItems(imgInfo) {
+  function getObjectURL(file) {
+    var url = null;
+    if (window.createObjectURL != undefined) { // basic
+      url = window.createObjectURL(file);
+    } else if (window.URL != undefined) { // mozilla(firefox)
+      url = window.URL.createObjectURL(file);
+    } else if (window.webkitURL != undefined) { // webkit or chrome
+      url = window.webkitURL.createObjectURL(file);
+    }
+    return url;
+  }
+
+  function initPazzle(config) {
+    getImgInfo(config.src).then((imgInfo) => {
+      initItems(imgInfo, config)
+      messy()
+      initItemsEvent()
+    })
+  }
+
+  function initItems(imgInfo, config) {
     let pazzleContainer = document.querySelector('.pazzle')
     pazzleContainer.innerHTML = ''
-    let step= document.querySelector('#step').value
+
+    // 设置参考图片
+    let img = document.querySelector('#img')
+    img.src = config.src
 
     let maxW = parseInt(document.body.offsetWidth * .6)
     let maxH = parseInt(document.body.offsetHeight * .6)
@@ -117,7 +99,12 @@
       width: 0,
       height: 0
     }
-    let clipNum = [[4, 4],[6, 8],[20, 10],[50,20]][step]
+    let clipNum = [
+      [2, 2],
+      [6, 8],
+      [20, 10],
+      [50, 20]
+    ][config.rank]
 
     if (maxRatio > imgRatio) {
       bgSize.height = maxH
@@ -137,70 +124,77 @@
       backgroundImage: `url(${imgInfo.src})`,
       backgroundSize: `${bgSize.width}px ${bgSize.height}px`
     }
-    let frag = document.createDocumentFragment()
-
-    for (let i = 0; i < clipNum[0] * clipNum[1]; i++) {
-      styles.backgroundPosition = `-${bgSize.width / clipNum[0] * (i % clipNum[0])}px -${bgSize.height / clipNum[1] * Math.floor(i / clipNum[0])}px`
-      let pazzleItem = setStyle(document.createElement('div'), styles)
-      pazzleItem.classList.add('pazzle-item')
-      frag.appendChild(pazzleItem)
-    }
-
-    pazzleContainer.style.width = `${bgSize.width}px`
-    pazzleContainer.style.height = `${bgSize.height}px`
-    pazzleContainer.style.backgroundSize = `${styles.width} ${styles.height},${styles.width} ${styles.height}`
-    pazzleContainer.appendChild(frag)
-  }
-
-  function initItemsEvent() {
-    let items = document.querySelectorAll('.pazzle-item')
-    initItemsDragEvent(items)
-  }
-
-  function setRandom() {
-    let items = document.querySelectorAll('.pazzle-item')
-
     let wW = document.body.offsetWidth
     let wH = document.body.offsetHeight
 
-    items.forEach((item) => {
-      let rect = item.getBoundingClientRect()
-      item.random = {
-        left: [-Math.floor(rect.left), Math.floor(wW - rect.right)],
-        top: [-Math.floor(rect.top), Math.floor(wH - rect.bottom)]
+    // 设置容器宽高
+    pazzleContainer.style.width = `${bgSize.width}px`
+    pazzleContainer.style.height = `${bgSize.height}px`
+
+    // 配置拼图块
+    let frag = document.createDocumentFragment()
+
+    let rect = pazzleContainer.getBoundingClientRect()
+
+    for (let i = 0; i < clipNum[0] * clipNum[1]; i++) {
+      // 设置拼图上层
+      styles.backgroundPosition =
+        `-${bgSize.width / clipNum[0] * (i % clipNum[0])}px -${bgSize.height / clipNum[1] * Math.floor(i / clipNum[0])}px`
+      let pazzleItem = setStyle(document.createElement('div'), styles)
+
+      let width = Number(styles.width.replace('px', ''))
+      let height = Number(styles.height.replace('px', ''))
+      pazzleItem.random = {
+        left: [-Math.floor(rect.left + i % clipNum[0] * width), Math.floor(wW - width - (rect.left + i % clipNum[0] *
+          width))],
+        top: [-Math.floor(rect.top + i / clipNum[0] * height), Math.floor(wH - height - (rect.top + i / clipNum[0] *
+          height))]
       }
-    })
+
+      pazzleItem.classList.add('pazzle-item')
+      pazzleItem.classList.add('animate')
+
+      frag.appendChild(pazzleItem)
+      // 设置拼图下层
+      // pazzle-bottom-item
+      let bottomStyles = {
+        width: styles.width,
+        height: styles.height,
+        left: `${i % clipNum[0] * width}px`,
+        top: `${Math.floor(i / clipNum[0]) * height}px`,
+      }
+      let bottomItem = setStyle(document.createElement('div'), bottomStyles)
+      bottomItem.positionData = {
+        left: Number(bottomStyles.left.replace('px', '')),
+        top: Number(bottomStyles.top.replace('px', '')),
+      }
+      bottomItem.classList.add('pazzle-bottom-item')
+      frag.appendChild(bottomItem)
+    }
+
+    pazzleContainer.appendChild(frag)
   }
 
-  function initBtnEvent() {
-    let messyBtn = document.querySelector('.messy-btn')
-    let returnBtn = document.querySelector('.return-btn')
+  function messy() {
+    setTimeout(() => {
+      let pazzleItems = document.querySelectorAll('.pazzle-item')
 
-    messyBtn.addEventListener('click', function () {
-      let boomItems = document.querySelectorAll('.pazzle-item')
-
-      boomItems.forEach((dom) => {
-        dom.classList.add('animate')
-        let randomData = dom.random
+      pazzleItems.forEach((item) => {
+        let randomData = item.random
         let rotate = [0, 45, 90, 135][randomNum(0, 3)]
-        let transform = `translate(${randomNum(randomData.left[0], randomData.left[1])}px,${randomNum(randomData.top[0], randomData.top[1])}px) rotate(${rotate}deg)`
-        dom.style.transform = transform
+        let transform =
+          `translate(${randomNum(randomData.left[0], randomData.left[1])}px,${randomNum(randomData.top[0], randomData.top[1])}px) rotate(${rotate}deg)`
+        item.style.transform = transform
 
         setTimeout(() => {
-          dom.classList.remove('animate')
+          item.classList.remove('animate')
         }, 1 * 1000)
       })
-    })
+    }, 400)
+  }
 
-    returnBtn.addEventListener('click', function () {
-      let boomItems = document.querySelectorAll('.pazzle-item')
-
-      boomItems.forEach((dom) => {
-        let transform = `translate(0,0) rotate(0)`
-        dom.style.transform = transform
-      })
-    })
-
+  function initItemsEvent() {
+    initItemsDragEvent(document.querySelectorAll('.pazzle-item'), document.querySelectorAll('.pazzle-bottom-item'))
   }
 
   function setStyle(dom, styles) {
@@ -235,4 +229,5 @@
     }
   }
 </script>
+
 </html>

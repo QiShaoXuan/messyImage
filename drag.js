@@ -1,11 +1,14 @@
-
-
-function initItemsDragEvent(doms) {
+function initItemsDragEvent(doms,bottomDoms) {
   let that = this
   this.dragDom = null
+ 
+  ;[].map.call(bottomDoms,(item, index) => ({
+    index: index,
+    left: item.positionData.left,
+    top: item.positionData.top,
+  }))
 
   doms.forEach((dom) => {
-
     dom.onmousedown = function (e) {
       that.dragDom = dom
       let positionData = dom.style.transform.match(/\-*\d+/g)
@@ -32,7 +35,7 @@ function initItemsDragEvent(doms) {
       let dir = e.wheelDelta > 0 ? 1 : -1
       let positionData = dragDom.style.transform.match(/\-*\d+/g)
 
-      dragDom.rotate = dragDom.rotate + dir*45
+      dragDom.rotate = dragDom.rotate + dir * 45
 
       dragDom.style.transform = `translate(${ positionData ? Number(positionData[0]) : 0}px,${ positionData ? Number(positionData[1]) : 0}px) rotate(${dragDom.rotate }deg)`
     }
